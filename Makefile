@@ -6,7 +6,7 @@
 #    By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/26 01:08:07 by cduvivie          #+#    #+#              #
-#    Updated: 2021/06/26 01:14:32 by cduvivie         ###   ########.fr        #
+#    Updated: 2021/07/07 15:39:09 by cduvivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,7 +18,14 @@ RM 			:=	/bin/rm -f
 
 INCLUDE 	:= 	-Iinclude/
 
-SRCS		:=	main.c \
+SRCS		:=	./srcs/main.c \
+				./srcs/utilities_1.c \
+				./srcs/input_parser.c \
+				./srcs/struct_init.c \
+				./srcs/philo_status.c \
+				./srcs/check_status.c \
+				./srcs/time_helper.c \
+				./srcs/debug.c \
 
 OBJ			:=	$(SRCS:%.c=%.o)
 
@@ -32,7 +39,7 @@ $(NAME)		:	$(OBJ)
 
 clean		:
 	@ $(RM) $(OBJ)
-	@ $(MAKE) -C clean
+	@ $(MAKE) -C
 
 fclean		:	clean
 	@ $(RM) $(NAME)
