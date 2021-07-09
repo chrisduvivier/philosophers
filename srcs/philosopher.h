@@ -6,7 +6,7 @@
 /*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/29 16:33:30 by cduvivie          #+#    #+#             */
-/*   Updated: 2021/07/07 23:05:02 by cduvivie         ###   ########.fr       */
+/*   Updated: 2021/07/08 13:01:30 by cduvivie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ typedef struct s_args
  */
 typedef struct s_thread_arg
 {
-	pthread_mutex_t	lock;
+	pthread_mutex_t	*f_locks;
 	pthread_mutex_t	*output_lock;
 	int				*forks;
 	int				philo_i;
@@ -79,6 +79,7 @@ typedef struct s_philo
 	pthread_t		*tid;
 	int				*forks;
 	t_thread_arg	*thread_arg;
+	pthread_mutex_t	*f_locks;
 	t_args			args;
 	pthread_mutex_t	output_lock;
 	int				*eat_counter;

@@ -1,5 +1,17 @@
 #include "philosopher.h"
 
+void	unlock_mutex(t_thread_arg *args)
+{
+	int i;
+
+	i = 0;
+	while (i < args->total_philo)
+	{
+		pthread_mutex_unlock(&(args->f_locks[i]));
+		i++;
+	}
+}
+
 int	check_starvation(t_thread_arg *args)
 {
 	long long now;
@@ -8,9 +20,15 @@ int	check_starvation(t_thread_arg *args)
 	if (now - args->time_last_eat > args->time_to_die)
 	{
 		pthread_mutex_lock(args->output_lock);
-		printf(RED "%lldms %i died\n" RESET, now - args->start_time, args->philo_i + 1);
-		pthread_mutex_unlock(args->output_lock);
+		if (*args->stop_philo > 0)
+		{
+			pthread_mutex_unlock(args->output_lock);
+			return (1);
+		}
+		printf(RED "%-10lldms %i died\n" RESET, now - args->start_time, args->philo_i + 1);
 		(*args->stop_philo)++;
+		pthread_mutex_unlock(args->output_lock);
+		unlock_mutex(args);
 		return (1);
 	}
 	return (0);

@@ -1,11 +1,16 @@
 #include "philosopher.h"
 
+/*
+**	Initialize variables, allocate memory, and set their value.
+*/
+
 int	t_philo_init(t_philo *philo, int n)
 {
 	philo->tid = NULL;
 	philo->forks = NULL;
 	philo->thread_arg = NULL;
 	philo->eat_counter = NULL;
+	philo->f_locks = NULL;
 	philo->stop_philo = 0;
 
 	philo->tid = (pthread_t *)malloc(sizeof(pthread_t) * n);
@@ -22,10 +27,25 @@ int	t_philo_init(t_philo *philo, int n)
 	if (philo->eat_counter == NULL)
 		return (free_program(philo));
 	memset((void *)philo->eat_counter, 0, sizeof(int) * n);
+	philo->f_locks = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t) * n);
+	if (!philo->f_locks)
+		return (free_program(philo));
+	
 	if (pthread_mutex_init(&(philo->output_lock), NULL) != 0)
 	{
 		printf(RED "Error: mutex init failed\n" RESET);
 		return (free_program(philo));
+	}
+	int i;
+	i = 0;
+	while (i < n)	
+	{
+		if (pthread_mutex_init(&(philo->f_locks[i]), NULL) != 0)
+		{
+			printf(RED "Error: mutex init failed\n" RESET);
+			return (free_program(philo));
+		}
+		i++;
 	}
 	return (0);
 }
@@ -51,17 +71,12 @@ int thread_arg_init(t_philo *philo, int n)
 		thread_arg->must_eat_to_end = philo->args.must_eat_to_end;
 		thread_arg->eat_counter = philo->eat_counter;
 		thread_arg->total_philo = n;
-		thread_arg->left_hand = 0;
-		thread_arg->right_hand = 0;
-		thread_arg->thinking = 0;
+		thread_arg->left_hand = philo_i;
+		thread_arg->right_hand = (philo_i + 1) % n;
 		thread_arg->time_last_eat = 0;
 		thread_arg->stop_philo = &philo->stop_philo;
 		thread_arg->output_lock = &philo->output_lock;
-		if (pthread_mutex_init(&(thread_arg->lock), NULL) != 0)
-		{
-			printf(RED "Error: mutex init failed\n" RESET);
-			return (free_program(philo));
-		}
+		thread_arg->f_locks = philo->f_locks;
 		philo_i++;
 	}
 	return (0);
