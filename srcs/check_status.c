@@ -19,16 +19,23 @@ int	check_starvation(t_thread_arg *args)
 	now = gettime_in_ms();
 	if (now - args->time_last_eat > args->time_to_die)
 	{
-		pthread_mutex_lock(args->output_lock);
+		pthread_mutex_lock(args->stop_m);
 		if (*args->stop_philo > 0)
 		{
-			pthread_mutex_unlock(args->output_lock);
+			pthread_mutex_unlock(args->stop_m);
 			return (1);
 		}
-		printf(RED "%-10lldms %i died\n" RESET, now - args->start_time, args->philo_i + 1);
+		pthread_mutex_unlock(args->stop_m);
+		
+		pthread_mutex_lock(args->output_lock);
+		printf(RED "%-10lld %i died\n" RESET, now - args->start_time, args->philo_i + 1);
+		
+		pthread_mutex_lock(args->stop_m);
 		(*args->stop_philo)++;
-		pthread_mutex_unlock(args->output_lock);
+		pthread_mutex_unlock(args->stop_m);
+		
 		unlock_mutex(args);
+		pthread_mutex_unlock(args->output_lock);
 		return (1);
 	}
 	return (0);
@@ -52,6 +59,7 @@ int	check_eat_count(t_thread_arg *args)
 			return (0);
 		i++;
 	}
+	(*args->stop_philo)++;
 	return (1);
 }
 
@@ -61,9 +69,12 @@ int	check_eat_count(t_thread_arg *args)
 
 int	check_stop_philo(t_thread_arg *args)
 {
+	pthread_mutex_lock(args->stop_m);
 	if (*args->stop_philo > 0)
+	{
+		pthread_mutex_unlock(args->stop_m);
 		return (1);
-	if (args->must_eat_to_end > 0)
-		return (check_eat_count(args));
+	}
+	pthread_mutex_unlock(args->stop_m);
 	return (0);
 }

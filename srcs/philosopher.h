@@ -6,7 +6,7 @@
 /*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/29 16:33:30 by cduvivie          #+#    #+#             */
-/*   Updated: 2021/07/08 13:01:30 by cduvivie         ###   ########.fr       */
+/*   Updated: 2021/07/12 14:22:23 by cduvivie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ typedef struct s_thread_arg
 {
 	pthread_mutex_t	*f_locks;
 	pthread_mutex_t	*output_lock;
+	pthread_mutex_t	*stop_m;
 	int				*forks;
 	int				philo_i;
 	int				time_to_die;
@@ -83,6 +84,7 @@ typedef struct s_philo
 	t_args			args;
 	pthread_mutex_t	output_lock;
 	int				*eat_counter;
+	pthread_mutex_t	stop_m;
 	int				stop_philo;
 }					t_philo;
 
@@ -103,7 +105,7 @@ int thread_arg_init(t_philo *philo, int philo_i);
 **	Philosopher's activity (status)
 */
 
-void	picked_up_fork(t_thread_arg *args);
+void	philo_fork(t_thread_arg *args);
 void	philo_eat(t_thread_arg *args);
 void	philo_sleep(t_thread_arg *args);
 void	philo_think(t_thread_arg *args);
@@ -124,6 +126,7 @@ int	ft_atoi(const char *str);
 int	ft_isdigit_string(const char *str);
 int	ft_isdigit(int c);
 int	free_program(t_philo *philo);
+void	unlock_mutex(t_thread_arg *args);
 
 /*
 **	Time

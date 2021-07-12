@@ -1,47 +1,23 @@
 #include "philosopher.h"
 
-/*
-**	
-*/
-
-int	try_pick_fork_left(t_thread_arg *args)
+int	pick_forks(t_thread_arg *args)
 {
-	// if (args->forks[args->left_hand] != AVAILABLE)
-	
-	
 	pthread_mutex_lock(&args->f_locks[args->left_hand]);
 	args->forks[args->left_hand] = NOT_AVAILABLE;
-
-	//check starvation, if dead, get out
-	if (check_starvation(args) == 1)
-	{
-		pthread_mutex_unlock(&args->f_locks[args->left_hand]);
-		return (1);
-	}
-		
-	picked_up_fork(args);
-	return (0);
-}
-/*
-**	
-*/
-
-int	try_pick_fork_right(t_thread_arg *args)
-{
-	
-	// if (args->forks[args->right_hand] != AVAILABLE)
-	
-	
-	pthread_mutex_lock(&args->f_locks[args->right_hand]);
-	args->forks[args->right_hand] = NOT_AVAILABLE;
-
-	//check starvation, if dead, get out
+	philo_fork(args);
 	if (check_starvation(args) == 1)
 	{
 		pthread_mutex_unlock(&args->f_locks[args->right_hand]);
 		return (1);
-	}		
-	picked_up_fork(args);
+	}	
+	pthread_mutex_lock(&args->f_locks[args->right_hand]);
+	args->forks[args->right_hand] = NOT_AVAILABLE;
+	philo_fork(args);
+	if (check_starvation(args) == 1)
+	{
+		pthread_mutex_unlock(&args->f_locks[args->right_hand]);
+		return (1);
+	}
 	return (0);
 }
 
@@ -54,35 +30,23 @@ void	*philo_life(void *thread_arg)
 	t_thread_arg *args;
 
 	args = (t_thread_arg *) thread_arg;
-	// printf("I am philosopher %d\n", args->philo_i + 1);
-	// print_state_fork(args->forks, args->total_philo);
+
 	args->start_time = gettime_in_ms();
 	args->time_last_eat = args->start_time;
 	while (check_stop_philo(args) == 0)
 	{
-		if (args->philo_i + 1 == args->total_philo)
-		{
-			if (try_pick_fork_right(args))
-				break ;
-			if (try_pick_fork_left(args))
-				break ;
-			}
-		else 
-		{
-			if (try_pick_fork_left(args))
-				break ;
-			if (try_pick_fork_right(args))
-				break ;
-		}
-		
+		if (pick_forks(args) != 0)
+			break ;
 		if (check_stop_philo(args) != 0)
 			break ;
 
 		philo_eat(args);
+		if (check_stop_philo(args) != 0)
+			break ;
 		philo_sleep(args);
 		philo_think(args);
-		(args->eat_counter[args->philo_i])++;
 	}
+	unlock_mutex(args);
 	return (NULL);
 }
 
@@ -123,7 +87,8 @@ int	launch_threads(t_philo *philo, int n)
 	i = 0;
 	while (i < n)
 	{
-		pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i]));
+		if (pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i])))
+			return (1);
 		i += 2;
 		usleep(20);
 	}
@@ -131,7 +96,8 @@ int	launch_threads(t_philo *philo, int n)
 	i = 1;
 	while (i < n)
 	{
-		pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i]));
+		if (pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i])))
+			return (1);
 		i += 2;
 		usleep(20);
 	}
@@ -140,7 +106,9 @@ int	launch_threads(t_philo *philo, int n)
 	i = 0;
 	while (i < n)
 	{
-		pthread_join((philo->tid[i]), NULL);		//make it wait for the end of thread before exit main.
+		//make it wait for the end of thread before exit main.
+		if (pthread_join((philo->tid[i]), NULL))
+			return (1);
 		i++;
 	}
 	return (0);
@@ -170,7 +138,11 @@ int main(int argc, char **argv)
 		perror(RED "Error: Init thread_arg_init failed\n" RESET);
 		return (EXIT_FAILURE);
 	}
-	launch_threads(&philo, philo.args.number_of_philosophers);
+	if (launch_threads(&philo, philo.args.number_of_philosophers) != 0)
+	{
+		perror(RED "Error: thread was not launched\n" RESET);
+		return (EXIT_FAILURE);
+	}
 	
 	int i = 0;
 	while (i < philo.args.number_of_philosophers)

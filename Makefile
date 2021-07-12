@@ -6,7 +6,7 @@
 #    By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/26 01:08:07 by cduvivie          #+#    #+#              #
-#    Updated: 2021/07/07 15:39:09 by cduvivie         ###   ########.fr        #
+#    Updated: 2021/07/12 16:22:38 by cduvivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,11 +39,9 @@ $(NAME)		:	$(OBJ)
 
 clean		:
 	@ $(RM) $(OBJ)
-	@ $(MAKE) -C
 
 fclean		:	clean
 	@ $(RM) $(NAME)
-	@ $(MAKE) -C fclean
 
 re			: fclean all
 

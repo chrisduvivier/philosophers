@@ -36,6 +36,13 @@ int	t_philo_init(t_philo *philo, int n)
 		printf(RED "Error: mutex init failed\n" RESET);
 		return (free_program(philo));
 	}
+
+	if (pthread_mutex_init(&(philo->stop_m), NULL) != 0)
+	{
+		printf(RED "Error: mutex init failed\n" RESET);
+		return (free_program(philo));
+	}
+
 	int i;
 	i = 0;
 	while (i < n)	
@@ -76,6 +83,7 @@ int thread_arg_init(t_philo *philo, int n)
 		thread_arg->time_last_eat = 0;
 		thread_arg->stop_philo = &philo->stop_philo;
 		thread_arg->output_lock = &philo->output_lock;
+		thread_arg->stop_m = &philo->stop_m;
 		thread_arg->f_locks = philo->f_locks;
 		philo_i++;
 	}
