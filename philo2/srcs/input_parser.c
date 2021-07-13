@@ -18,8 +18,9 @@ int	check_error_in_arguments(t_params *args)
 		printf("Error: number of philosophers must be between 2 to 200\n");
 		return (1);
 	}
-	if (args->time_to_die < 60 || args->time_to_eat < 60
-		|| args->time_to_sleep < 60)
+	if (args->time_to_die < MIN_TIME_IN_MS
+		|| args->time_to_eat < MIN_TIME_IN_MS
+		|| args->time_to_sleep < MIN_TIME_IN_MS)
 	{
 		printf("Error: each time argument must be more than 60ms\n");
 		return (1);

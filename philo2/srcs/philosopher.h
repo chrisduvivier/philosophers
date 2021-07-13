@@ -6,7 +6,7 @@
 /*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/29 16:33:30 by cduvivie          #+#    #+#             */
-/*   Updated: 2021/07/13 17:52:53 by cduvivie         ###   ########.fr       */
+/*   Updated: 2021/07/14 00:53:45 by cduvivie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@
 # define SLEEP 3
 # define THINK 4
 # define DEATH 5
+
+# define MIN_TIME_IN_MS 60
 
 # define RED   "\x1B[31m"
 # define GRN   "\x1B[32m"

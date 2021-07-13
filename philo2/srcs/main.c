@@ -5,6 +5,7 @@ void	check_starvation(t_philo *philo)
 	int		i;
 	long	time;
 
+	msleep(MIN_TIME_IN_MS);
 	while (!philo->end_of_philo)
 	{
 		i = 0;
