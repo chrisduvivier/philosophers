@@ -5,24 +5,13 @@
 **	verify correctness of passed arguments. Return non 0 value upon error. 
 */
 
-int	check_error_in_arguments(t_params *args)
+int	check_error_in_arguments(t_args *args)
 {
-	if (args->n < 0 || args->time_to_die < 0 || args->time_to_eat < 0
-		|| args->time_to_sleep < 0 || args->must_eat_to_end < 0)
+	if (args->number_of_philosophers < 0 || args->time_to_die < 0
+			|| args->time_to_eat < 0 || args->time_to_sleep < 0
+			|| args->must_eat_to_end < 0)
 	{
-		printf("Error: Arguments must be positive integer\n");
-		return (1);
-	}
-	if (args->n == 1 || args->n > 200)
-	{
-		printf("Error: number of philosophers must be between 2 to 200\n");
-		return (1);
-	}
-	if (args->time_to_die < MIN_TIME_IN_MS
-		|| args->time_to_eat < MIN_TIME_IN_MS
-		|| args->time_to_sleep < MIN_TIME_IN_MS)
-	{
-		printf("Error: each time argument must be more than 60ms\n");
+		perror("Error: Arguments must be positive integer\n");
 		return (1);
 	}
 	return (0);
@@ -46,7 +35,7 @@ int	check_args_datatype(int argc, char **argv)
 **	Fill arguments into structure and check for error input.
 */
 
-int parse_arguments(t_params *args, int argc, char **argv)
+int parse_arguments(t_args *args, int argc, char **argv)
 {
 	if (argc < 5 || argc > 6)
 	{
@@ -58,7 +47,7 @@ int parse_arguments(t_params *args, int argc, char **argv)
 		perror("Error: Wrong data type in arguments\n");
 		return (1);
 	}
-	args->n = ft_atoi(argv[1]);
+	args->number_of_philosophers = ft_atoi(argv[1]);
 	args->time_to_die = ft_atoi(argv[2]);
 	args->time_to_eat = ft_atoi(argv[3]);
 	args->time_to_sleep = ft_atoi(argv[4]);

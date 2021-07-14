@@ -1,22 +1,58 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/07/14 11:26:00 by cduvivie          #+#    #+#             */
+/*   Updated: 2021/07/14 11:26:03 by cduvivie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philosopher.h"
 
-int	pick_forks(t_thread_arg *args)
+void	check_starvation(t_philo *philo)
 {
-	pthread_mutex_lock(&args->f_locks[args->left_hand]);
-	args->forks[args->left_hand] = NOT_AVAILABLE;
-	philo_fork(args);
-	if (check_starvation(args) == 1)
+	int		i;
+	long	time;
+
+	msleep(MIN_TIME_IN_MS);
+	while (!philo->end_of_philo)
 	{
-		pthread_mutex_unlock(&args->f_locks[args->right_hand]);
-		return (1);
-	}	
-	pthread_mutex_lock(&args->f_locks[args->right_hand]);
-	args->forks[args->right_hand] = NOT_AVAILABLE;
-	philo_fork(args);
-	if (check_starvation(args) == 1)
+		i = 0;
+		time = get_microsec();
+		while (i < philo->params.n && !philo->end_of_philo)
+		{
+			if (time - philo->thread_arg[i].time_last_eat
+				>= philo->params.time_to_die * 1000)
+			{
+				philo_state(&(philo->thread_arg[i]), DEATH);
+				return ;
+			}
+			i++;
+		}
+		usleep(500);
+	}
+}
+
+int	check_end_of_philo(t_thread_arg *args)
+{
+	if (args->params->must_eat_to_end > 0)
 	{
-		pthread_mutex_unlock(&args->f_locks[args->right_hand]);
-		return (1);
+		if (args->eat_counter == args->params->must_eat_to_end)
+		{
+			pthread_mutex_lock(args->mutex);
+			(*args->num_philo_done)++;
+			pthread_mutex_unlock(args->mutex);
+		}
+		if ((*args->num_philo_done) == args->params->n)
+		{
+			pthread_mutex_lock(args->mutex);
+			(*args->end_of_philo) = 1;
+			pthread_mutex_unlock(args->mutex);
+			return (1);
+		}
 	}
 	return (0);
 }
@@ -27,67 +63,33 @@ int	pick_forks(t_thread_arg *args)
 
 void	*philo_life(void *thread_arg)
 {
-	t_thread_arg *args;
+	t_thread_arg	*args;
 
 	args = (t_thread_arg *) thread_arg;
-
-	args->start_time = gettime_in_ms();
+	args->start_time = get_microsec();
 	args->time_last_eat = args->start_time;
-	while (check_stop_philo(args) == 0)
+	while (!(*args->end_of_philo))
 	{
-		if (pick_forks(args) != 0)
-			break ;
-		if (check_stop_philo(args) != 0)
-			break ;
-
 		philo_eat(args);
-		if (check_stop_philo(args) != 0)
-			break ;
 		philo_sleep(args);
 		philo_think(args);
+		if (check_end_of_philo(args))
+			break ;
 	}
-	unlock_mutex(args);
 	return (NULL);
-}
-
-int	free_program(t_philo *philo)
-{
-	if (philo->tid)
-	{
-		free(philo->tid);
-		philo->tid = NULL;
-	}
-	if (philo->thread_arg)
-	{
-		free(philo->thread_arg);
-		philo->thread_arg = NULL;
-	}
-	if (philo->forks)
-	{
-		free(philo->forks);
-		philo->forks = NULL;
-	}
-	if (philo->eat_counter)
-	{
-		free(philo->eat_counter);
-		philo->eat_counter = NULL;
-	}
-	if (philo->f_locks)
-	{
-		free(philo->f_locks);
-		philo->f_locks = NULL;
-	}
-	return (1);
 }
 
 int	launch_threads(t_philo *philo, int n)
 {
-	int i;
-	
+	int	i;
+
+	philo->global_start = get_microsec();
 	i = 0;
 	while (i < n)
 	{
-		if (pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i])))
+		philo->thread_arg[i].global_start = &(philo->global_start);
+		if (pthread_create(&(philo->tid[i]), NULL,
+				&philo_life, (void *)&(philo->thread_arg[i])))
 			return (1);
 		i += 2;
 		usleep(20);
@@ -96,20 +98,12 @@ int	launch_threads(t_philo *philo, int n)
 	i = 1;
 	while (i < n)
 	{
-		if (pthread_create(&(philo->tid[i]), NULL, &philo_life, (void *)&(philo->thread_arg[i])))
+		philo->thread_arg[i].global_start = &(philo->global_start);
+		if (pthread_create(&(philo->tid[i]), NULL,
+				&philo_life, (void *)&(philo->thread_arg[i])))
 			return (1);
 		i += 2;
 		usleep(20);
-	}
-
-
-	i = 0;
-	while (i < n)
-	{
-		//make it wait for the end of thread before exit main.
-		if (pthread_join((philo->tid[i]), NULL))
-			return (1);
-		i++;
 	}
 	return (0);
 }
@@ -119,40 +113,24 @@ int	launch_threads(t_philo *philo, int n)
 **          number_of_times_each_philosopher_must_eat (optional)
 */
 
-int main(int argc, char **argv)
+int	main(int argc, char **argv)
 {
-	t_philo 		philo;
+	int		i;
+	t_philo	philo;
 
-	if (parse_arguments(&philo.args, argc, argv) != 0)
-	{
-		printf(RED "Error: Invalid argument\n" RESET);
+	if (parse_arguments(&philo.params, argc, argv) != 0)
 		return (EXIT_FAILURE);
-	}
-	if (t_philo_init(&philo, philo.args.number_of_philosophers) != 0)
-	{
-		perror(RED "Error: Malloc failed in t_philo_init\n" RESET);
+	if (t_philo_init(&philo, philo.params.n) != 0)
 		return (EXIT_FAILURE);
-	}
-	if (thread_arg_init(&philo, philo.args.number_of_philosophers) != 0)
+	if (launch_threads(&philo, philo.params.n) != 0)
+		return (exit_error(&philo, THREAD_FAILED));
+	check_starvation(&philo);
+	i = 0;
+	while (i < philo.params.n)
 	{
-		perror(RED "Error: Init thread_arg_init failed\n" RESET);
-		return (EXIT_FAILURE);
+		if (pthread_join((philo.tid[i++]), NULL))
+			return (exit_error(&philo, THREAD_JOIN_FAILED));
 	}
-	if (launch_threads(&philo, philo.args.number_of_philosophers) != 0)
-	{
-		perror(RED "Error: thread was not launched\n" RESET);
-		return (EXIT_FAILURE);
-	}
-	
-	int i = 0;
-	while (i < philo.args.number_of_philosophers)
-	{
-		pthread_mutex_destroy(&philo.f_locks[i]);
-		i++;
-	}
-	pthread_mutex_destroy(&philo.output_lock);
-
-	//detach thread when no longer needed.
-
-	return (0);
+	free_program(&philo);
+	return (EXIT_SUCCESS);
 }

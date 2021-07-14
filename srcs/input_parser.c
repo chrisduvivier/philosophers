@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   input_parser.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/07/14 11:25:55 by cduvivie          #+#    #+#             */
+/*   Updated: 2021/07/14 11:26:38 by cduvivie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "philosopher.h"
 
@@ -5,14 +16,25 @@
 **	verify correctness of passed arguments. Return non 0 value upon error. 
 */
 
-int	check_error_in_arguments(t_args *args)
+int	check_error_in_arguments(t_params *args)
 {
-	if (args->number_of_philosophers < 0 || args->time_to_die < 0
-			|| args->time_to_eat < 0 || args->time_to_sleep < 0
-			|| args->must_eat_to_end < 0)
+	if (args->n < 0 || args->time_to_die < 0 || args->time_to_eat < 0
+		|| args->time_to_sleep < 0 || args->must_eat_to_end < 0)
 	{
-		perror("Error: Arguments must be positive integer\n");
-		return (1);
+		exit_error(NULL, "Error: Arguments must be positive int\n");
+		return (EXIT_FAILURE);
+	}
+	if (args->n == 1 || args->n > 200)
+	{
+		exit_error(NULL, "Error: num of philosophers must be between 2-200\n");
+		return (EXIT_FAILURE);
+	}
+	if (args->time_to_die < MIN_TIME_IN_MS
+		|| args->time_to_eat < MIN_TIME_IN_MS
+		|| args->time_to_sleep < MIN_TIME_IN_MS)
+	{
+		exit_error(NULL, "Error: each time argument must be more than 60ms\n");
+		return (EXIT_FAILURE);
 	}
 	return (0);
 }
@@ -35,19 +57,13 @@ int	check_args_datatype(int argc, char **argv)
 **	Fill arguments into structure and check for error input.
 */
 
-int parse_arguments(t_args *args, int argc, char **argv)
+int	parse_arguments(t_params *args, int argc, char **argv)
 {
 	if (argc < 5 || argc > 6)
-	{
-		perror("Error: Wrong number of arguments\n");
-		return (1);
-	}
+		return (exit_error(NULL, "Error: Wrong number of arguments\n"));
 	if (check_args_datatype(argc, argv) == 1)
-	{
-		perror("Error: Wrong data type in arguments\n");
-		return (1);
-	}
-	args->number_of_philosophers = ft_atoi(argv[1]);
+		return (exit_error(NULL, "Error: Wrong data type in arguments\n"));
+	args->n = ft_atoi(argv[1]);
 	args->time_to_die = ft_atoi(argv[2]);
 	args->time_to_eat = ft_atoi(argv[3]);
 	args->time_to_sleep = ft_atoi(argv[4]);

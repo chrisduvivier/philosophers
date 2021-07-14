@@ -6,7 +6,7 @@
 /*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/29 16:33:30 by cduvivie          #+#    #+#             */
-/*   Updated: 2021/07/14 00:53:45 by cduvivie         ###   ########.fr       */
+/*   Updated: 2021/07/12 14:22:23 by cduvivie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,8 @@
 # include <limits.h>
 # include <sys/time.h>
 
-# define GRAB_FORK 1
-# define EAT 2
-# define SLEEP 3
-# define THINK 4
-# define DEATH 5
-
-# define MIN_TIME_IN_MS 60
+# define AVAILABLE 0
+# define NOT_AVAILABLE 1
 
 # define RED   "\x1B[31m"
 # define GRN   "\x1B[32m"
@@ -41,14 +36,14 @@
 # define RESET_STYLE   "\e[0m"
 # define RESET "\x1B[0m"
 
-typedef struct s_params
+typedef struct s_args
 {
+	int			number_of_philosophers;
 	int			time_to_die;
 	int			time_to_eat;
 	int			time_to_sleep;
 	int			must_eat_to_end;
-	int			n;
-}				t_params;
+}				t_args;
 
 /**
  * Struct to pass into thread create function.
@@ -56,18 +51,23 @@ typedef struct s_params
  */
 typedef struct s_thread_arg
 {
-	t_params		*params;
-	pthread_mutex_t	*forks;
-	pthread_mutex_t	*mutex;
+	pthread_mutex_t	*f_locks;
+	pthread_mutex_t	*output_lock;
+	pthread_mutex_t	*stop_m;
+	int				*forks;
 	int				philo_i;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				must_eat_to_end;
+	int				total_philo;
 	int				left_hand;
 	int				right_hand;
-	int				eat_counter;
-	int				*num_philo_done;
+	int				thinking;
+	int				*eat_counter;
 	long long		start_time;
-	long long		*global_start;
 	long long		time_last_eat;
-	int				*end_of_philo;
+	int				*stop_philo;
 }					t_thread_arg;
 
 /*
@@ -78,20 +78,21 @@ typedef struct s_thread_arg
 typedef struct s_philo
 {
 	pthread_t		*tid;
+	int				*forks;
 	t_thread_arg	*thread_arg;
-	pthread_mutex_t	*forks;
-	pthread_mutex_t	mutex;
-	t_params		params;
-	int				num_philo_done;
-	int				end_of_philo;
-	long long		global_start;
+	pthread_mutex_t	*f_locks;
+	t_args			args;
+	pthread_mutex_t	output_lock;
+	int				*eat_counter;
+	pthread_mutex_t	stop_m;
+	int				stop_philo;
 }					t_philo;
 
 /*
 **	Input parser
 */
 
-int parse_arguments(t_params *args, int argc, char **argv);
+int parse_arguments(t_args *args, int argc, char **argv);
 
 /*
 **	Struct init
@@ -113,8 +114,7 @@ void	philo_think(t_thread_arg *args);
 **	Check program/philosopher status
 */
 
-void	check_starvation(t_philo *philo);
-void    philo_state(t_thread_arg *args, int state);
+int	check_starvation(t_thread_arg *args);
 int	check_eat_count(t_thread_arg *args);
 int	check_stop_philo(t_thread_arg *args);
 
@@ -133,8 +133,7 @@ void	unlock_mutex(t_thread_arg *args);
 */
 
 int	msleep(unsigned int tms);
-long long	get_microsec(void);
-long long	get_millisec(void);
+long long gettime_in_ms(void);
 
 /*
 **	Some debug function for logs/testing purpose

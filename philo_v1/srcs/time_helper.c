@@ -1,19 +1,13 @@
 #include "philosopher.h"
 
-long long get_millisec(void)
+long long gettime_in_ms(void)
 {
-	struct timeval	now;
+	struct timeval now;
+	long long	time_in_ms;
 
 	gettimeofday(&now, NULL);
-	return ((now.tv_sec) * 1000LL + (now.tv_usec) / 1000);
-}
-
-long long	get_microsec(void)
-{
-	struct timeval	now;
-
-	gettimeofday(&now, NULL);
-	return (now.tv_sec * 1000000 + now.tv_usec);
+	time_in_ms = (now.tv_sec) * 1000LL + (now.tv_usec) / 1000;
+	return (time_in_ms);
 }
 
 /*

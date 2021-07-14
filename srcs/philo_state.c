@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_state.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/07/14 11:26:06 by cduvivie          #+#    #+#             */
+/*   Updated: 2021/07/14 11:27:28 by cduvivie         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "philosopher.h"
 
@@ -38,10 +49,10 @@ void	print_state(t_thread_arg *args, long long now, int state)
 	print_state_helper(state);
 }
 
-void    philo_state(t_thread_arg *args, int state)
+void	philo_state(t_thread_arg *args, int state)
 {
-	long long now;
-	int i;
+	long long	now;
+	int			i;
 
 	i = 0;
 	now = get_microsec();
@@ -59,34 +70,4 @@ void    philo_state(t_thread_arg *args, int state)
 			pthread_mutex_unlock(&args->forks[i++]);
 	}
 	pthread_mutex_unlock(args->mutex);
-}
-
-void	pick_forks(t_thread_arg *args)
-{
-	pthread_mutex_lock(&(args->forks[args->left_hand]));
-	philo_state(args, GRAB_FORK);
-	pthread_mutex_lock(&(args->forks[args->right_hand]));
-	philo_state(args, GRAB_FORK);
-}
-
-void	philo_eat(t_thread_arg *args)
-{
-	pick_forks(args);
-	args->time_last_eat = get_microsec();
-	philo_state(args, EAT);
-	msleep(args->params->time_to_eat);
-	pthread_mutex_unlock(&(args->forks[args->left_hand]));
-	pthread_mutex_unlock(&(args->forks[args->right_hand]));
-	args->eat_counter += 1;
-}
-
-void	philo_sleep(t_thread_arg *args)
-{
-	philo_state(args, SLEEP);
-	msleep(args->params->time_to_sleep);
-}
-
-void	philo_think(t_thread_arg *args)
-{
-	philo_state(args, THINK);
 }
