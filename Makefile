@@ -6,7 +6,7 @@
 #    By: cduvivie <cduvivie@student.s19.be>         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/06/26 01:08:07 by cduvivie          #+#    #+#              #
-#    Updated: 2021/07/14 10:35:05 by cduvivie         ###   ########.fr        #
+#    Updated: 2021/07/14 11:28:12 by cduvivie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,6 +22,7 @@ SRCS		:=	./srcs/main.c \
 				./srcs/utilities_1.c \
 				./srcs/input_parser.c \
 				./srcs/struct_init.c \
+				./srcs/philo_activity.c \
 				./srcs/philo_state.c \
 				./srcs/time_helper.c \
 				./srcs/exit.c \
